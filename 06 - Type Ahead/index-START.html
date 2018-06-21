@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+// get the link of the .json file and save it into the variable "endpoint" (string)
+const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+// create an array to hold the itens returned by the .json
+const places = [];
+
+fetch(endpoint) // fetch will take the content of the link passed by "endpoint" and create a "promise" object containing the response (waiting to be converted into something)
+  .then(blob => blob.json()) // using the .json method we can extract the JSON from the response
+  .then(data => places.push(...data)) // to avoid a nested array and spread the itens from the JSON into the places array, use the push method with ...data
+
+// take the characters being typed and search for places (cities or states) which contains the characters being typed in
+function findMatches(wordToMatch, places){
+  return places.filter(place => {
+    // here we need to figure out if the city or state matches what was searched
+    const regex = new RegExp(wordToMatch, 'gi');
+    return place.city.match(regex) || place.state.match(regex)
+  });
+}
+
+function numberWithCommas(x){
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function displayMatches(){
+  const matchArray = findMatches(this.value, places);
+  // console.log(this); - Just to make sure it is pointing to the input field
+  const html = matchArray.map(place => {
+    const regex = new RegExp(this.value, 'gi');
+    const cityName = place.city.replace(regex, `<span class="h1">${this.value}</span>`);
+    const stateName = place.state.replace(regex, `<span class="h1">${this.value}</span>`);
+    return `
+      <li>
+        <span class="name">${cityName}, ${stateName}</span>
+        <span class="population">${numberWithCommas(place.population)}</span>
+      </li>
+    `;
+  }).join('');
+  suggestions.innerHTML = html;
+}
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('change', displayMatches);
+searchInput.addEventListener('keyup', displayMatches);
+
+</script>
+  </body>
+</html>
